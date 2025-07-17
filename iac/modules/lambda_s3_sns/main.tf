@@ -193,6 +193,27 @@ resource "aws_lambda_function" "delete_ebs_function" {
                 ]
 }
 
+resource "aws_cloudwatch_event_rule" "daily_trigger" {
+  name                = "daily_trigger"
+  description         = "Executa a Lambda diariamente"
+  schedule_expression = "cron(0 8 * * ? *)" # Executa todo dia às 10:00 UTC (07:00 BRT)
+}
+
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  rule      = aws_cloudwatch_event_rule.daily_trigger.name
+  target_id = "lambdaTarget"
+  arn       = aws_lambda_function.delete_ebs_function.arn
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.delete_ebs_function.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.daily_trigger.arn
+}
+
+
 resource "aws_lambda_function" "estimate_ebs_function" {
   function_name = var.lambda_estimate_ebs_function
   runtime      = var.lambda_runtime
@@ -218,7 +239,6 @@ resource "aws_lambda_function" "estimate_ebs_function" {
   depends_on = [aws_s3_object.estimate_ebs_file]
 }
 
-#Configuração da permissão do evento via bucket S3 acionador da execução da Lambda 
 resource "aws_lambda_permission" "allow_s3_to_invoke_lambda" {
   statement_id  = "AllowS3InvokeLambda"
   action        = "lambda:InvokeFunction"

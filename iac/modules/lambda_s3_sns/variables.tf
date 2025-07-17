@@ -40,7 +40,7 @@ variable "sns_topic_name" {
 variable "sns_email_endpoint" {
   type        = string
   description = "Endereço de e-mail para receber notificações do SNS"
-  default     = "vesteves33@gmail.com"
+  default     = "vitor.devfinops@gmail.com"
 }
 
 ## Informações do IAM ##
@@ -90,13 +90,13 @@ variable "estimate_ebs_handler" {
 variable "lambda_memory_size" {
   type        = number
   description = "Tamanho da memória da função Lambda"
-  default     = 128 ##Como padrão será 128MB, mas altere conforme necessidade
+  default     = 128 
 }
 
 variable "lambda_timeout" {
   type        = number
   description = "Tempo de timeout da função Lambda"
-  default     = 60 ##Como padrão será 60 segundos, mas altere conforme necessidade
+  default     = 60 
 }
 
 variable "lambda_runtime" {

@@ -72,21 +72,15 @@ def upload_file_to_s3(file_path: str, bucket_name: str, object_name: str) -> boo
         error(f"Ocorreu um erro inesperado durante o upload: {e}")
         return False
     
-def send_email(
-    count_ebs_excluidos_por_regiao,
-    count_ebs_nao_excluidos_por_regiao,
-    ebs_nao_excluidos,
-) -> None:
-    '''
-
-    '''
+def send_email(count_ebs_excluidos_por_regiao: int,count_ebs_nao_excluidos_por_regiao: int) -> None:
     account_name, account_id = get_aws_account_name_and_id()
 
     # Publicar mensagem no tópico SNS
     sns_topic_arn = SNS_TOPIC_ARN
     if not sns_topic_arn:
         error("O ARN do tópico SNS não foi fornecido verificar as variaveis de ambiente.")
-        return
+        return {'message':'O ARN do tópico SNS não foi fornecido verificar as variaveis de ambiente.'}
+    
     sns_client = boto3.client("sns")
 
     # Formatando a mensagem para incluir o número de EBS excluídos e não excluídos em cada região
@@ -127,16 +121,15 @@ def create_csv_file(dict_data: dict):
         Retorna o arquivo CSV criado com os dados salvos.
     '''
 
-    # Criar um objeto StringIO para armazenar os dados CSV em memória
     output_file = StringIO()
 
     header_list = list(dict_data[0].keys())
 
     csv_writer = csv.DictWriter(output_file, fieldnames=header_list)
-    csv_writer.writeheader() #Cabeçalho do CSV
-    csv_writer.writerows(dict_data) #Escreve os dados no CSV
+    csv_writer.writeheader() 
+    csv_writer.writerows(dict_data) 
 
-    csv_file = output_file.getvalue() #Obtendo os dados do CSV
+    csv_file = output_file.getvalue()
     info(f"CSV criado com {len(dict_data)} registros")
     output_file.close() 
 
@@ -144,12 +137,8 @@ def create_csv_file(dict_data: dict):
 
 # funcao lambda principal
 def handler(event, context):
-    count_ebs_excluidos_por_regiao = (
-        []
-    )  # lista para armazenar o número de EBS excluídos em cada região
-    count_ebs_nao_excluidos_por_regiao = (
-        []
-    )  # lista para armazenar o número de EBS não excluídos em cada região
+    count_ebs_excluidos_por_regiao = ( [] )  
+    count_ebs_nao_excluidos_por_regiao = ( [] )
 
     volumes_list = []
     
@@ -178,7 +167,7 @@ def handler(event, context):
                     tags = {tag["Key"]: tag["Value"] for tag in volume.get("Tags", [])}
 
                     # Verificar se o volume possui a tag 'inUse' com valor True
-                    if "inUse" in tags and tags["inUse"].lower() == "true":
+                    if "VolumeState" in tags and tags["VolumeState"].lower() == "inuse":
                         print(
                             f'Volume {volume["VolumeId"]} não pode ser excluído pois está marcado como em uso'
                         )
@@ -199,7 +188,7 @@ def handler(event, context):
                         info(f'Volume {volume["VolumeId"]} incluso na listagem para exclusão')
                         
                         # Se o volume não possuiu a tag 'inUse', pode ser excluído
-                        # ec2.delete_volume(VolumeId=volume["VolumeId"])
+                        ec2.delete_volume(VolumeId=volume["VolumeId"])
                         print(f'Volume {volume["VolumeId"]} excluído com sucesso')
                         ebs_excluidos.append(volume["VolumeId"])
                         count_ebs_excluidos += 1
@@ -223,11 +212,7 @@ def handler(event, context):
         count_ebs_nao_excluidos_por_regiao.append((region, count_ebs_nao_excluidos))
 
     # enviar um email com o número de EBS excluídos e não excluídos em cada região
-    send_email(
-        count_ebs_excluidos_por_regiao,
-        count_ebs_nao_excluidos_por_regiao,
-        ebs_nao_excluidos,
-    )
+    send_email(count_ebs_excluidos_por_regiao,count_ebs_nao_excluidos_por_regiao)
 
     # Criando arquivo CSV com os volumes que foram excluídos
     csv_file = create_csv_file(volumes_list)
@@ -239,7 +224,7 @@ def handler(event, context):
         }
     
     # Definindo o nome do arquivo CSV
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     csv_object_key = f"report/unattached_ebs_{timestamp}.csv"
 
     if not BUCKET_NAME:

@@ -40,9 +40,3 @@ output "arn_sns_subscription" {
   value       = module.lambda_s3_sns.sns_subscription_arn
   description = "ARN da assinatura do SNS (referenciado do módulo)"
 }
-
-
-
-
-
-
