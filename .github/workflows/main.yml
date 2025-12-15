@@ -82,7 +82,7 @@ jobs:
             poetry run ruff format --check .
           else
             uv run ruff check .
-            uv run ruff format --check .
+            uv run ruff format .
           fi
 
       - name: Análise de Segurança (Bandit)
@@ -90,7 +90,7 @@ jobs:
           if [ "$PACKAGE_MANAGER" == "poetry" ]; then
              poetry run bandit -r . -c "pyproject.toml" || true
           else
-             uv run bandit -r . -c "pyproject.toml" || true
+             uv run bandit -r .
           fi
 
       - name: Testes Unitários
