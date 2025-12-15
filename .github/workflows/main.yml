@@ -1,0 +1,174 @@
+name: FinOps as Code - CI/CD Pipeline - Cleanup Block Storage Idle
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop 
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: meu-app-repo-aws
+  PYTHON_VERSION: '3.13'
+  TF_VERSION: '1.5.7'
+  PACKAGE_MANAGER: 'uv'
+
+jobs:
+  code-quality-tests:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+   
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      # ======================================================
+      # CONFIGURAÇÃO: UV (Executa apenas se PACKAGE_MANAGER for 'uv')
+      # ======================================================
+      - name: Instalar e Configurar UV
+        if: env.PACKAGE_MANAGER == 'uv'
+        uses: astral-sh/setup-uv@v1
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Configurar Python (UV)
+        if: env.PACKAGE_MANAGER == 'uv'
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Instalar Dependências (UV)
+        if: env.PACKAGE_MANAGER == 'uv'
+        run: |
+          uv venv
+          uv pip install -r requirements.txt
+          # Instala ferramentas de dev se não estiverem no requirements
+          uv pip install ruff bandit pytest pytest-cov
+
+      # ======================================================
+      # CONFIGURAÇÃO: POETRY (Executa apenas se PACKAGE_MANAGER for 'poetry')
+      # ======================================================
+      - name: Instalar Poetry
+        if: env.PACKAGE_MANAGER == 'poetry'
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Configurar Python (Standard)
+        if: env.PACKAGE_MANAGER == 'poetry'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'poetry'
+
+      - name: Instalar Dependências (Poetry)
+        if: env.PACKAGE_MANAGER == 'poetry'
+        run: poetry install --no-interaction --no-root
+
+      # ======================================================
+      # EXECUÇÃO DAS FERRAMENTAS (Adaptável para ambos)
+      # ======================================================
+      - name: Linting e Formatação (Ruff)
+        run: |
+          if [ "$PACKAGE_MANAGER" == "poetry" ]; then
+            poetry run ruff check .
+            poetry run ruff format --check .
+          else
+            source .venv/bin/activate
+            ruff check .
+            ruff format --check .
+          fi
+
+      - name: Análise de Segurança (Bandit)
+        run: |
+          if [ "$PACKAGE_MANAGER" == "poetry" ]; then
+             poetry run bandit -r . -c "pyproject.toml" || true
+          else
+             source .venv/bin/activate
+             bandit -r . -c "pyproject.toml" || true
+          fi
+
+      - name: Testes Unitários
+        run: |
+          if [ "$PACKAGE_MANAGER" == "poetry" ]; then
+             poetry run pytest --cov=./ --cov-report=xml
+          else
+             source .venv/bin/activate
+             pytest --cov=./ --cov-report=xml
+          fi
+
+      # ======================================================
+      # QUALIDADE IAC (Terraform)
+      # ======================================================
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        run: terraform init -backend=false && terraform validate
+
+      - name: Segurança e Compliance IaC (Checkov)
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: terraform
+          soft_fail: true
+
+  # Job de Deploy
+  terraform-deploy:
+    name: Provision Infrastructure
+    runs-on: ubuntu-latest
+    # Nota: Removi 'needs: [build-push]' pois esse job não estava no snippet fornecido.
+    # Se ele existir no seu arquivo completo, descomente a linha abaixo.
+    # needs: [code-quality-tests, build-push]
+    needs: [code-quality-tests]
+   
+    # Roda apenas em Push (não em PR) e apenas nas branches permitidas
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+   
+    # Define o Environment dinamicamente: Production (Main) ou Development (Develop)
+    environment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Development' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configurar AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -no-color -out=tfplan \
+          -var="container_image_tag=${{ github.sha }}" \
+          -var="environment=${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}"
+          # Dica: Passei uma variavel 'environment' para o terraform saber o que criar
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
