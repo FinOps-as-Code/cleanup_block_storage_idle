@@ -47,11 +47,7 @@ jobs:
 
       - name: Instalar Dependências (UV)
         if: env.PACKAGE_MANAGER == 'uv'
-        run: |
-          uv venv
-          uv pip install -r requirements.txt
-          # Instala ferramentas de dev se não estiverem no requirements
-          uv pip install ruff bandit pytest pytest-cov
+        run: uv sync --frozen
 
       # ======================================================
       # CONFIGURAÇÃO: POETRY (Executa apenas se PACKAGE_MANAGER for 'poetry')
@@ -85,9 +81,8 @@ jobs:
             poetry run ruff check .
             poetry run ruff format --check .
           else
-            source .venv/bin/activate
-            ruff check .
-            ruff format --check .
+            uv run ruff check .
+            uv run ruff format --check .
           fi
 
       - name: Análise de Segurança (Bandit)
@@ -95,8 +90,7 @@ jobs:
           if [ "$PACKAGE_MANAGER" == "poetry" ]; then
              poetry run bandit -r . -c "pyproject.toml" || true
           else
-             source .venv/bin/activate
-             bandit -r . -c "pyproject.toml" || true
+             uv run bandit -r . -c "pyproject.toml" || true
           fi
 
       - name: Testes Unitários
@@ -104,8 +98,7 @@ jobs:
           if [ "$PACKAGE_MANAGER" == "poetry" ]; then
              poetry run pytest --cov=./ --cov-report=xml
           else
-             source .venv/bin/activate
-             pytest --cov=./ --cov-report=xml
+             uv run pytest --cov=./ --cov-report=xml
           fi
 
       # ======================================================
