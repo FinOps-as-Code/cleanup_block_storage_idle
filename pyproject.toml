@@ -7,3 +7,9 @@ requires-python = ">=3.14"
 dependencies = [
     "boto3>=1.42.9",
 ]
+
+[dependency-groups]
+dev = [
+    "bandit>=1.9.2",
+    "ruff>=0.14.9",
+]
