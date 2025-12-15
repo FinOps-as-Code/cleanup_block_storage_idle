@@ -47,13 +47,13 @@ def get_data_csv_report_file():
 
     header = next(reader, None)
     if header is None or 'VolumeId' not in header:
-        error(f"O CSV está vazio ou não possui cabeçalho.")
+        error("O CSV está vazio ou não possui cabeçalho.")
         return None
     
     try:
         volume_id_index = header.index('VolumeId')
     except ValueError:
-        error(f"A coluna 'VolumeId' não foi encontrada no cabeçalho do CSV.")
+        error("A coluna 'VolumeId' não foi encontrada no cabeçalho do CSV.")
         return None
     
     for row in reader:
