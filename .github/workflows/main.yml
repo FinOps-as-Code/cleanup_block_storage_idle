@@ -90,7 +90,7 @@ jobs:
           if [ "$PACKAGE_MANAGER" == "poetry" ]; then
              poetry run bandit -r . -c "pyproject.toml" || true
           else
-             uv run bandit -r .
+             uv run bandit -c pyproject.toml -r .
           fi
 
       - name: Testes Unitários
