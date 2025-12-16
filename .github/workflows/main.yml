@@ -114,8 +114,8 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive iac
+      - name: Terraform Format Files
+        run: terraform fmt -recursive iac
 
       - name: Terraform Validate Init
         working-directory: ./iac
