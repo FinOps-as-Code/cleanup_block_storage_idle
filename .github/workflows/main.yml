@@ -95,10 +95,15 @@ jobs:
 
       - name: Testes Unitários
         run: |
-          if [ "$PACKAGE_MANAGER" == "poetry" ]; then
-             poetry run pytest --cov=./ --cov-report=xml
+          # Verificação se existe pasta de testes
+          if [ ! -d "tests" ]; then
+            echo "Diretório 'tests' não encontrado. Pulando testes unitários."
           else
-             uv run pytest --cov=./ --cov-report=xml
+            if [ "$PACKAGE_MANAGER" == "poetry" ]; then
+               poetry run pytest --cov=./ --cov-report=xml
+            else
+               uv run pytest --cov=./ --cov-report=xml
+            fi
           fi
 
       # ======================================================
