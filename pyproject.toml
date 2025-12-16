@@ -3,7 +3,7 @@ name = "cleanup-block-storage-idle"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
     "boto3>=1.42.9",
 ]
@@ -13,3 +13,15 @@ dev = [
     "bandit>=1.9.2",
     "ruff>=0.14.9",
 ]
+
+[tool.ruff]
+line-length = 130
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W" ]
+ignore = []
+
+[tool.bandit]
+exclude_dirs = [".venv", ".ruff_cache"]
+skips = ["B101"]

@@ -82,7 +82,7 @@ jobs:
             poetry run ruff format --check .
           else
             uv run ruff check .
-            uv run ruff format .
+            uv run ruff check --fix .
           fi
 
       - name: Análise de Segurança (Bandit)
