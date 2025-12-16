@@ -57,10 +57,10 @@ variable "iam_role_policy_name" {
 }
 
 ## Informações da Lambda ##
-variable "regions"{
+variable "regions" {
   type        = list(string)
   description = "Regiões onde a lambda precisa verificar EBS não anexados"
-  default     = ["us-east-1", "sa-east-1"] 
+  default     = ["us-east-1", "sa-east-1"]
 }
 
 variable "lambda_delete_ebs_function" {
@@ -90,13 +90,13 @@ variable "estimate_ebs_handler" {
 variable "lambda_memory_size" {
   type        = number
   description = "Tamanho da memória da função Lambda"
-  default     = 128 
+  default     = 128
 }
 
 variable "lambda_timeout" {
   type        = number
   description = "Tempo de timeout da função Lambda"
-  default     = 60 
+  default     = 60
 }
 
 variable "lambda_runtime" {
@@ -127,8 +127,8 @@ variable "layer_estimate_ebs_zip_path" {
 variable "tags" {
   type        = map(string)
   description = "Tags para os recursos"
-  default     = {
+  default = {
     application = "IaC-Terraform"
-    project = "DevFinOps-Project"
+    project     = "DevFinOps-Project"
   }
 }

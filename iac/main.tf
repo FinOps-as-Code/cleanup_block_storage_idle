@@ -1,4 +1,4 @@
-module lambda_s3_sns {
+module "lambda_s3_sns" {
   source = "./modules/lambda_s3_sns"
 }
 

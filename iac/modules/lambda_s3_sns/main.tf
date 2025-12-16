@@ -5,13 +5,13 @@ resource "aws_s3_bucket" "bucket_s3" {
   force_destroy = true
 
   tags = merge(var.tags, {
-    name        = "tf-bucket"
+    name = "tf-bucket"
   })
 }
 
 resource "aws_s3_bucket_versioning" "bucket_versioning" {
   bucket = aws_s3_bucket.bucket_s3.id
-  
+
   versioning_configuration {
     status = "Enabled"
   }
@@ -21,14 +21,14 @@ resource "aws_s3_bucket_versioning" "bucket_versioning" {
 resource "aws_s3_object" "lambda_folder" {
   bucket = aws_s3_bucket.bucket_s3.bucket
   key    = "lambda/"
-  
+
 }
 
 # Criação da "pasta" report dentro do bucket
 resource "aws_s3_object" "report_folder" {
   bucket = aws_s3_bucket.bucket_s3.bucket
   key    = "report/"
-  
+
 }
 # Zipando arquivo python delete ebs
 data "archive_file" "delete_ebs_zip" {
@@ -67,14 +67,14 @@ resource "aws_sns_topic" "sns_topic" {
   name = var.sns_topic_name
 
   tags = merge(var.tags, {
-    name        = "tf-sns-topic"
+    name = "tf-sns-topic"
   })
 }
 
 resource "aws_sns_topic_subscription" "email_subscription" {
-  topic_arn = aws_sns_topic.sns_topic.arn 
+  topic_arn = aws_sns_topic.sns_topic.arn
   protocol  = "email"
-  endpoint  = var.sns_email_endpoint 
+  endpoint  = var.sns_email_endpoint
 }
 
 # Criação da Role IAM para a função Lambda
@@ -90,12 +90,12 @@ resource "aws_iam_role" "iam_role" {
         Principal = {
           Service = "lambda.amazonaws.com"
         }
-      }, 
+      },
     ]
   })
 
   tags = merge(var.tags, {
-    name        = "tf-role"
+    name = "tf-role"
   })
 }
 
@@ -108,9 +108,9 @@ resource "aws_iam_role_policy" "iam_role_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "iam:ListAccountAliases", 
-        Effect = "Allow",
-        Resource = "*"      
+        Action   = "iam:ListAccountAliases",
+        Effect   = "Allow",
+        Resource = "*"
       },
       {
         Action = [
@@ -131,18 +131,18 @@ resource "aws_iam_role_policy" "iam_role_policy" {
           "ec2:DeleteVolume",
         ],
         Effect   = "Allow",
-        Resource = "*" 
+        Resource = "*"
       },
       {
         Action = [
-          "s3:ListBucket", 
+          "s3:ListBucket",
           "s3:PutObject",
           "s3:GetObject",
         ],
-        Effect   = "Allow",
-        Resource = [aws_s3_bucket.bucket_s3.arn,   
-                    "${aws_s3_bucket.bucket_s3.arn}/*"
-                    ]
+        Effect = "Allow",
+        Resource = [aws_s3_bucket.bucket_s3.arn,
+          "${aws_s3_bucket.bucket_s3.arn}/*"
+        ]
       },
       {
         Action = [
@@ -155,7 +155,7 @@ resource "aws_iam_role_policy" "iam_role_policy" {
         Action = [
           "ce:GetCostAndUsage",
           "ce:GetCostAndUsageWithResources",
-          ],
+        ],
         Effect   = "Allow",
         Resource = "*"
       }
@@ -166,31 +166,31 @@ resource "aws_iam_role_policy" "iam_role_policy" {
 # Criação das Funções Lambdas
 resource "aws_lambda_function" "delete_ebs_function" {
   function_name = var.lambda_delete_ebs_function
-  runtime      = var.lambda_runtime
+  runtime       = var.lambda_runtime
   handler       = var.delete_ebs_handler
   memory_size   = var.lambda_memory_size
   timeout       = var.lambda_timeout
   role          = aws_iam_role.iam_role.arn
   s3_bucket     = aws_s3_bucket.bucket_s3.id
   s3_key        = aws_s3_object.delete_ebs_file.key
-  
+
   # Criando variaveis de ambiente que vão ser usadas pelo codigo python também
   environment {
     variables = {
       TARGET_BUCKET_S3 = aws_s3_bucket.bucket_s3.id
-      SNS_TOPIC_ARN = aws_sns_topic.sns_topic.arn
-      TARGET_REGIONS = jsonencode(var.regions)
+      SNS_TOPIC_ARN    = aws_sns_topic.sns_topic.arn
+      TARGET_REGIONS   = jsonencode(var.regions)
     }
   }
 
   tags = merge(var.tags, {
-    name        = "tf-lambda"
+    name = "tf-lambda"
   })
-  
+
   depends_on = [
-                aws_s3_object.delete_ebs_file,
-                aws_sns_topic.sns_topic
-                ]
+    aws_s3_object.delete_ebs_file,
+    aws_sns_topic.sns_topic
+  ]
 }
 
 resource "aws_cloudwatch_event_rule" "daily_trigger" {
@@ -216,7 +216,7 @@ resource "aws_lambda_permission" "allow_cloudwatch" {
 
 resource "aws_lambda_function" "estimate_ebs_function" {
   function_name = var.lambda_estimate_ebs_function
-  runtime      = var.lambda_runtime
+  runtime       = var.lambda_runtime
   handler       = var.estimate_ebs_handler
   memory_size   = var.lambda_memory_size
   timeout       = var.lambda_timeout
@@ -227,15 +227,15 @@ resource "aws_lambda_function" "estimate_ebs_function" {
   # Criando variaveis de ambiente que vão ser usadas pelo codigo python também
   environment {
     variables = {
-      TARGET_BUCKET_S3 = aws_s3_bucket.bucket_s3.id
+      TARGET_BUCKET_S3        = aws_s3_bucket.bucket_s3.id
       TARGET_BUCKET_S3_FOLDER = "report/"
     }
   }
 
   tags = merge(var.tags, {
-    name        = "tf-lambda"
+    name = "tf-lambda"
   })
-  
+
   depends_on = [aws_s3_object.estimate_ebs_file]
 }
 
@@ -253,9 +253,9 @@ resource "aws_s3_bucket_notification" "s3_to_lambda_notification" {
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.estimate_ebs_function.arn
-    events              = ["s3:ObjectCreated:*"] 
-    filter_prefix       = "report/" 
-    filter_suffix     = ".csv" 
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "report/"
+    filter_suffix       = ".csv"
   }
 
   # Depende da permissão ser criada antes da notificação
@@ -270,13 +270,13 @@ resource "null_resource" "remove_zip_files" {
   provisioner "local-exec" {
     # Comando utilizado no Linux ou MacOS para remoção dos zips
     command = "rm -f ${data.archive_file.delete_ebs_zip.output_path} ${data.archive_file.estimate_ebs_zip.output_path}"
-    
+
     # Comando utilizado no Windows, para remoção dos zips:
     # command = "del ${data.archive_file.delete_ebs_zip.output_path} ${data.archive_file.estimate_ebs_zip.output_path}"
   }
 
   depends_on = [
-      aws_s3_object.delete_ebs_file,
-      aws_s3_object.estimate_ebs_file
-    ]
+    aws_s3_object.delete_ebs_file,
+    aws_s3_object.estimate_ebs_file
+  ]
 }
