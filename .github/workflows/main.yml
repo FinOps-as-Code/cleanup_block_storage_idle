@@ -115,15 +115,16 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Format Check
-        run: terraform fmt -check -recursive
+        run: terraform fmt -check -recursive iac
 
-      - name: Terraform Validate
+      - name: Terraform Validate Init
+        working-directory: ./iac
         run: terraform init -backend=false && terraform validate
 
       - name: Segurança e Compliance IaC (Checkov)
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: .
+          directory: iac
           framework: terraform
           soft_fail: true
 
