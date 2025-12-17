@@ -215,7 +215,6 @@ resource "aws_lambda_permission" "allow_cloudwatch" {
   source_arn    = aws_cloudwatch_event_rule.daily_trigger.arn
 }
 
-
 resource "aws_lambda_function" "estimate_ebs_function" {
   function_name = var.lambda_estimate_ebs_function
   runtime       = var.lambda_runtime
