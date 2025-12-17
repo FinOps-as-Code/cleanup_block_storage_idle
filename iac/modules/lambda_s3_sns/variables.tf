@@ -132,3 +132,10 @@ variable "tags" {
     project     = "DevFinOps-Project"
   }
 }
+
+## Informações do ECR ##
+variable "ecr_repository_name" {
+  type        = string
+  description = "Nome do repositório ECR onde a imagem da Lambda está armazenada"
+  default     = "fac-cleanup-block-storage-idle"
+}
