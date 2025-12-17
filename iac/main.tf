@@ -2,6 +2,10 @@ module "lambda_s3_sns" {
   source = "./modules/lambda_s3_sns"
 }
 
+#Variaveis obrigatorios em função da pipeline do github actions
+container_image_tag = var.container_image_tag
+environment         = var.environment
+
 #Outputs do módulo
 output "delete_ebs_arn" {
   value       = module.lambda_s3_sns.delete_ebs_function_arn
