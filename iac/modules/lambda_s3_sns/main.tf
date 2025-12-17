@@ -179,7 +179,7 @@ resource "aws_lambda_function" "delete_ebs_function" {
   s3_bucket     = aws_s3_bucket.bucket_s3.id
   s3_key        = aws_s3_object.delete_ebs_file.key
   package_type  = "Image"
-  image_uri    = "${data.aws_ecr_repository.repo_ecr.repository_url}:latest"
+  image_uri    = "${data.aws_ecr_repository.repo_ecr.repository_url}:${var.container_image_tag}"
 
   # Criando variaveis de ambiente que vão ser usadas pelo codigo python também
   environment {
