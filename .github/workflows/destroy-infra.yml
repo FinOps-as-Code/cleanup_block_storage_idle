@@ -1,0 +1,67 @@
+name: Destroy Infrastructure
+
+on: 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Qual ambiente deseja destruir (Development ou Production)?'
+        required: true
+        default: 'Development'
+        type: choice
+        options:
+        - Development
+        - Production
+      confirm_destroy:
+        description: 'Digite destruir para confirmar'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: '1.5.7'
+
+jobs:
+    terraform-destroy:
+        name: Destroy ${{ inputs.environment }}
+        runs-on: ubuntu-latest
+        environment: ${{ inputs.environment }}
+
+        steps:
+          - name: Verificar confirmação
+            run: |
+              if [ "${{ inputs.confirm_destroy }}" != "destruir" ]; then
+                echo "Confirmação incorreta. Abortando operação."
+                exit 1
+              fi
+          
+          - name: Checkout do Código
+            uses: actions/checkout@v4
+
+          - name: Configurar Terraform
+            uses: hashicorp/setup-terraform@v3
+            with:
+              terraform_version: ${{ env.TF_VERSION }}
+        
+          - name: Configurar AWS credentials
+            uses: aws-actions/configure-aws-credentials@v4
+            with:
+              role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+              aws-region: ${{ env.AWS_REGION }}
+
+          - name: Inicializar o Terraform
+            working-directory: ./iac
+            run: terraform init
+
+          - name: Aplicar o Destroy do Terraform
+            working-directory: ./iac
+            run: |
+                if [ "${{ inputs.environment }}" != "Production" ]; then
+                  ENV_VAR='prod'
+                else
+                  ENV_VAR='dev'
+                fi
+                
+                terraform destroy -auto-approve -var="environment=$ENV_VAR" -var="container_image_tag=destroying"

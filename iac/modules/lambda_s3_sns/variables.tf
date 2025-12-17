@@ -5,6 +5,19 @@ variable "bucket_name" {
   default     = "devfinops.tf.bucket.delete-ebs-unattached"
 }
 
+## Informações referentes ao arquivo zip
+variable "estimate_ebs_python_path" {
+  type        = string
+  description = "Caminho do arquivo Python da função Lambda de exclusão de EBS não anexados"
+  default     = "../estimate_ebs_noAttached.py"
+}
+
+variable "estimate_ebs_zip_name" {
+  type        = string
+  description = "Caminho do arquivo Python da função Lambda de estimativa de EBS não anexados"
+  default     = "estimate-ebs.zip"
+}
+
 ## Informações do SNS ##
 variable "sns_topic_name" {
   type        = string
@@ -15,7 +28,7 @@ variable "sns_topic_name" {
 variable "sns_email_endpoint" {
   type        = string
   description = "Endereço de e-mail para receber notificações do SNS"
-  default     = "" ##Substitua pelo seu e-mail
+  default     = "vitor.devfinops@gmail.com"
 }
 
 ## Informações do IAM ##
@@ -32,54 +45,95 @@ variable "iam_role_policy_name" {
 }
 
 ## Informações da Lambda ##
-variable "regions"{
+variable "regions" {
   type        = list(string)
   description = "Regiões onde a lambda precisa verificar EBS não anexados"
-  default     = ["us-east-1", "sa-east-1"] 
+  default     = ["us-east-1", "sa-east-1"]
 }
 
-variable "lambda_name" {
+variable "lambda_delete_ebs_function" {
   type        = string
   description = "Nome da função Lambda"
   default     = "devfinops_tf_lambda_delete_ebs_unattached"
 }
 
-variable "lambda_handler" {
+variable "lambda_estimate_ebs_function" {
+  type        = string
+  description = "Nome da função Lambda"
+  default     = "devfinops_tf_lambda_estimate_ebs_unattached"
+}
+
+variable "delete_ebs_handler" {
   type        = string
   description = "Função handler da lambda"
   default     = "delete_ebs_noAttached.handler"
 }
 
+variable "estimate_ebs_handler" {
+  type        = string
+  description = "Função handler da lambda"
+  default     = "estimate_ebs_noAttached.handler"
+}
+
 variable "lambda_memory_size" {
   type        = number
   description = "Tamanho da memória da função Lambda"
-  default     = 128 ##Como padrão será 128MB, mas altere conforme necessidade
+  default     = 128
 }
 
 variable "lambda_timeout" {
   type        = number
   description = "Tempo de timeout da função Lambda"
-  default     = 60 ##Como padrão será 60 segundos, mas altere conforme necessidade
+  default     = 60
 }
 
 variable "lambda_runtime" {
   type        = string
   description = "Runtime da função Lambda"
-  default     = "python3.9"
+  default     = "python3.13"
 }
 
-variable "lambda_zip_path" {
+variable "delete_ebs_zip_path" {
   type        = string
   description = "Caminho do arquivo zip da função Lambda"
-  default     = "./python.zip"
+  default     = "./delete-ebs.zip"
+}
+
+variable "estimate_ebs_zip_path" {
+  type        = string
+  description = "Caminho do arquivo zip da função Lambda"
+  default     = "./estimate-ebs.zip"
+}
+
+variable "layer_estimate_ebs_zip_path" {
+  type        = string
+  description = "Caminho do arquivo zip da layer da função Lambda"
+  default     = "./layer-content.zip"
 }
 
 ## Informações de Tags ##
 variable "tags" {
   type        = map(string)
   description = "Tags para os recursos"
-  default     = {
+  default = {
     application = "IaC-Terraform"
-    project = "DevFinOps-Project"
+    project     = "DevFinOps-Project"
   }
+}
+
+## Informações do ECR ##
+variable "ecr_repository_name" {
+  type        = string
+  description = "Nome do repositório ECR onde a imagem da Lambda está armazenada"
+  default     = "fac-cleanup-block-storage-idle"
+}
+
+## Informações de variaveis recebidas via CLI ##
+variable "container_image_tag" {
+  type        = string
+}
+
+variable "environment" {
+  type        = string
+  default     = "dev"
 }
