@@ -160,6 +160,9 @@ resource "aws_lambda_function" "delete_ebs_function" {
   role          = aws_iam_role.iam_role.arn
   package_type  = "Image"
   image_uri    = "${data.aws_ecr_repository.repo_ecr.repository_url}:${var.container_image_tag}"
+  image_config {
+    command = [var.delete_ebs_handler]
+  }
 
   # Criando variaveis de ambiente que vão ser usadas pelo codigo python também
   environment {
