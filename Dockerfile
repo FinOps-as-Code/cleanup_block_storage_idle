@@ -24,11 +24,10 @@ USER app_user
 
 WORKDIR /app
 
-COPY /src src
 COPY --from=pre-production /app/.venv .venv
 
 ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE $PORT
 
-ENTRYPOINT ["uv", "run", "python" "delete_ebs_noAttached.py"]
+ENTRYPOINT ["uv", "run", "python", "delete_ebs_noAttached.py"]
