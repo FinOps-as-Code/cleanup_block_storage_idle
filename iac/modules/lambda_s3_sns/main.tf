@@ -216,53 +216,53 @@ resource "aws_lambda_permission" "allow_cloudwatch" {
 }
 
 
-# resource "aws_lambda_function" "estimate_ebs_function" {
-#   function_name = var.lambda_estimate_ebs_function
-#   runtime       = var.lambda_runtime
-#   handler       = var.estimate_ebs_handler
-#   memory_size   = var.lambda_memory_size
-#   timeout       = var.lambda_timeout
-#   role          = aws_iam_role.iam_role.arn
-#   s3_bucket     = aws_s3_bucket.bucket_s3.id
-#   s3_key        = aws_s3_object.estimate_ebs_file.key
+resource "aws_lambda_function" "estimate_ebs_function" {
+  function_name = var.lambda_estimate_ebs_function
+  runtime       = var.lambda_runtime
+  handler       = var.estimate_ebs_handler
+  memory_size   = var.lambda_memory_size
+  timeout       = var.lambda_timeout
+  role          = aws_iam_role.iam_role.arn
+  s3_bucket     = aws_s3_bucket.bucket_s3.id
+  s3_key        = aws_s3_object.estimate_ebs_file.key
 
-#   # Criando variaveis de ambiente que vão ser usadas pelo codigo python também
-#   environment {
-#     variables = {
-#       TARGET_BUCKET_S3        = aws_s3_bucket.bucket_s3.id
-#       TARGET_BUCKET_S3_FOLDER = "report/"
-#     }
-#   }
+  # Criando variaveis de ambiente que vão ser usadas pelo codigo python também
+  environment {
+    variables = {
+      TARGET_BUCKET_S3        = aws_s3_bucket.bucket_s3.id
+      TARGET_BUCKET_S3_FOLDER = "report/"
+    }
+  }
 
-#   tags = merge(var.tags, {
-#     name = "tf-lambda"
-#   })
+  tags = merge(var.tags, {
+    name = "tf-lambda"
+  })
 
-#   depends_on = [aws_s3_object.estimate_ebs_file]
-# }
+  depends_on = [aws_s3_object.estimate_ebs_file]
+}
 
-# resource "aws_lambda_permission" "allow_s3_to_invoke_lambda" {
-#   statement_id  = "AllowS3InvokeLambda"
-#   action        = "lambda:InvokeFunction"
-#   function_name = aws_lambda_function.estimate_ebs_function.function_name
-#   principal     = "s3.amazonaws.com"
-#   source_arn    = aws_s3_bucket.bucket_s3.arn
-# }
+resource "aws_lambda_permission" "allow_s3_to_invoke_lambda" {
+  statement_id  = "AllowS3InvokeLambda"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.estimate_ebs_function.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.bucket_s3.arn
+}
 
-# # Isso configura o bucket para enviar eventos para a Lambda
-# resource "aws_s3_bucket_notification" "s3_to_lambda_notification" {
-#   bucket = aws_s3_bucket.bucket_s3.id
+# Isso configura o bucket para enviar eventos para a Lambda
+resource "aws_s3_bucket_notification" "s3_to_lambda_notification" {
+  bucket = aws_s3_bucket.bucket_s3.id
 
-#   lambda_function {
-#     lambda_function_arn = aws_lambda_function.estimate_ebs_function.arn
-#     events              = ["s3:ObjectCreated:*"]
-#     filter_prefix       = "report/"
-#     filter_suffix       = ".csv"
-#   }
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.estimate_ebs_function.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "report/"
+    filter_suffix       = ".csv"
+  }
 
-#   # Depende da permissão ser criada antes da notificação
-#   depends_on = [aws_lambda_permission.allow_s3_to_invoke_lambda]
-# }
+  # Depende da permissão ser criada antes da notificação
+  depends_on = [aws_lambda_permission.allow_s3_to_invoke_lambda]
+}
 
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
