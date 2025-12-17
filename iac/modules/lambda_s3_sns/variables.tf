@@ -143,11 +143,9 @@ variable "ecr_repository_name" {
 ## Informações de variaveis recebidas via CLI ##
 variable "container_image_tag" {
   type        = string
-  description = "Tag da imagem Docker (SHA do commit)"
 }
 
 variable "environment" {
   type        = string
-  description = "Ambiente de implantação (dev, prod, etc.)"
   default     = "dev"
 }
