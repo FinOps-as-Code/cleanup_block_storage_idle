@@ -167,7 +167,6 @@ data "aws_ecr_repository" "repo_ecr" {
   name = var.ecr_repository_name
 }
 
-
 # Criação das Funções Lambdas
 resource "aws_lambda_function" "delete_ebs_function" {
   function_name = "${var.lambda_delete_ebs_function}-${var.environment}"
