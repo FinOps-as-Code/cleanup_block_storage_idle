@@ -140,12 +140,3 @@ variable "ecr_repository_name" {
   default     = "fac-cleanup-block-storage-idle"
 }
 
-## Informações de variaveis recebidas via CLI ##
-variable "container_image_tag" {
-  type        = string
-}
-
-variable "environment" {
-  type        = string
-  default     = "dev"
-}
