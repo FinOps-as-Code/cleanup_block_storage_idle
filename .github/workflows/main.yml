@@ -227,23 +227,18 @@ jobs:
 
           LOWER_IMAGE_NAME=$(echo "$RAW_IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
           
-          
           if [ "${{ env.REGISTRY_TYPE}}" == "ecr" ]; then
             REGISTRY="${{ steps.login-ecr.outputs.registry }}"
 
-            if [ -z "$REGISTRY" ]; then
-              echo "Falha no login do registry do ECR."
-              exit 1
-            fi
-
             FULL_NAME="$REGISTRY/$LOWER_IMAGE_NAME"  
+
           else
             FULL_NAME="$LOWER_IMAGE_NAME"
           fi
           echo "Tag gerada: $FULL_NAME:$SHA_SHORT"
 
           echo "full_image=$FULL_NAME" >> $GITHUB_OUTPUT
-          echo "tag_sha=$SHA_SHORT" >> $GITHUB_OUTPUT
+          echo "tag=$SHA_SHORT" >> $GITHUB_OUTPUT
           
       - name: Build e Push
         uses: docker/build-push-action@v5
