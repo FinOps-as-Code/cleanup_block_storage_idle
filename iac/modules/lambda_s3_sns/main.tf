@@ -170,7 +170,7 @@ data "aws_ecr_repository" "repo_ecr" {
 
 # Criação das Funções Lambdas
 resource "aws_lambda_function" "delete_ebs_function" {
-  function_name = var.lambda_delete_ebs_function
+  function_name = "${var.lambda_delete_ebs_function}-${var.environment}"
   runtime       = var.lambda_runtime
   handler       = var.delete_ebs_handler
   memory_size   = var.lambda_memory_size
@@ -178,6 +178,7 @@ resource "aws_lambda_function" "delete_ebs_function" {
   role          = aws_iam_role.iam_role.arn
   s3_bucket     = aws_s3_bucket.bucket_s3.id
   s3_key        = aws_s3_object.delete_ebs_file.key
+  package_type  = "Image"
   image_uri    = "${data.aws_ecr_repository.repo_ecr.repository_url}:latest"
 
   # Criando variaveis de ambiente que vão ser usadas pelo codigo python também

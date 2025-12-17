@@ -139,3 +139,15 @@ variable "ecr_repository_name" {
   description = "Nome do repositório ECR onde a imagem da Lambda está armazenada"
   default     = "fac-cleanup-block-storage-idle"
 }
+
+## Informações de variaveis recebidas via CLI ##
+variable "container_image_tag" {
+  type        = string
+  description = "Tag da imagem Docker (SHA do commit)"
+}
+
+variable "environment" {
+  type        = string
+  description = "Ambiente de implantação (dev, prod, etc.)"
+  default     = "dev"
+}
