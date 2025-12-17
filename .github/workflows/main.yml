@@ -50,11 +50,11 @@ jobs:
         
       - name: Gerar Infracost Baseline
         run: |
-          infracost breakdown --path base_code/iac --format json --out-file /tmp/infracost-base.json
+          infracost breakdown --path base_code/iac --format json --out-file /tmp/infracost-base.json --terraform-var "container_image_tag=latest" --terraform-var "environment=dev"
 
       - name: Gerar Infracost Diff
         run: |
-          infracost diff --path iac --compare-to /tmp/infracost-base.json --format json --out-file /tmp/infracost.json
+          infracost diff --path iac --compare-to /tmp/infracost-base.json --format json --out-file /tmp/infracost.json --terraform-var "container_image_tag=latest" --terraform-var "environment=dev"
       
       - name: Comentar Infracost no PR
         uses: infracost/actions/comment@v3
