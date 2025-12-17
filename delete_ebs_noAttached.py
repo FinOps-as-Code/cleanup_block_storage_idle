@@ -78,7 +78,6 @@ def upload_file_to_s3(file_path: str, bucket_name: str, object_name: str) -> boo
 def send_email(count_ebs_excluidos_por_regiao: int, count_ebs_nao_excluidos_por_regiao: int) -> None:
     account_name, account_id = get_aws_account_name_and_id()
 
-    # Publicar mensagem no tópico SNS
     sns_topic_arn = SNS_TOPIC_ARN
     if not sns_topic_arn:
         error("O ARN do tópico SNS não foi fornecido verificar as variaveis de ambiente.")
@@ -134,7 +133,6 @@ def create_csv_file(dict_data: dict):
     return csv_file
 
 
-# funcao lambda principal
 def handler(event, context):
     count_ebs_excluidos_por_regiao = []
     count_ebs_nao_excluidos_por_regiao = []
@@ -145,18 +143,14 @@ def handler(event, context):
     for region in regions:
         print(f"#### {region} ####")
 
-        # Criar uma instancia do client EC2
         ec2 = boto3.client("ec2", region_name=region)
 
-        # Inicializar listas
         ebs_excluidos = []
         ebs_nao_excluidos = []
 
-        # Inicializar contador
         count_ebs_excluidos = 0
         count_ebs_nao_excluidos = 0
 
-        # Iterar sobre todos os volumes EBS na região
         paginator = ec2.get_paginator("describe_volumes")
         for page in paginator.paginate():
             for volume in page["Volumes"]:
@@ -210,16 +204,13 @@ def handler(event, context):
         count_ebs_excluidos_por_regiao.append((region, count_ebs_excluidos))
         count_ebs_nao_excluidos_por_regiao.append((region, count_ebs_nao_excluidos))
 
-    # enviar um email com o número de EBS excluídos e não excluídos em cada região
     send_email(count_ebs_excluidos_por_regiao, count_ebs_nao_excluidos_por_regiao)
 
-    # Criando arquivo CSV com os volumes que foram excluídos
     csv_file = create_csv_file(volumes_list)
     if not csv_file:
         error("Erro ao criar o arquivo CSV")
         return {"statusCode": 500, "body": "Erro ao criar o arquivo CSV"}
 
-    # Definindo o nome do arquivo CSV
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     csv_object_key = f"report/unattached_ebs_{timestamp}.csv"
 

@@ -102,7 +102,7 @@ variable "lambda_timeout" {
 variable "lambda_runtime" {
   type        = string
   description = "Runtime da função Lambda"
-  default     = "python3.9"
+  default     = "python3.13"
 }
 
 variable "delete_ebs_zip_path" {
