@@ -31,12 +31,6 @@ resource "aws_s3_object" "report_folder" {
 
 }
 # Zipando arquivo python delete ebs
-data "archive_file" "delete_ebs_zip" {
-  type        = "zip"
-  source_file = var.delete_ebs_python_path
-  output_path = var.delete_ebs_zip_path
-}
-
 data "archive_file" "estimate_ebs_zip" {
   type        = "zip"
   source_file = var.estimate_ebs_python_path
@@ -44,15 +38,6 @@ data "archive_file" "estimate_ebs_zip" {
 }
 
 # Upload dos scripts Python para a pasta "lambda" no Bucket S3
-resource "aws_s3_object" "delete_ebs_file" {
-  bucket = aws_s3_bucket.bucket_s3.id
-  key    = "lambda/${var.delete_ebs_zip_name}"
-  source = var.delete_ebs_zip_path
-  etag   = filemd5(var.delete_ebs_zip_path)
-
-  depends_on = [aws_s3_object.lambda_folder]
-}
-
 resource "aws_s3_object" "estimate_ebs_file" {
   bucket = aws_s3_bucket.bucket_s3.id
   key    = "lambda/${var.estimate_ebs_zip_name}"
@@ -188,10 +173,6 @@ resource "aws_lambda_function" "delete_ebs_function" {
   tags = merge(var.tags, {
     name = "tf-lambda"
   })
-
-  depends_on = [
-    aws_sns_topic.sns_topic
-  ]
 }
 
 resource "aws_cloudwatch_event_rule" "daily_trigger" {
@@ -268,15 +249,10 @@ data "aws_caller_identity" "current" {}
 ## Removendo os arquivos zips criados
 resource "null_resource" "remove_zip_files" {
   provisioner "local-exec" {
-    # Comando utilizado no Linux ou MacOS para remoção dos zips
-    command = "rm -f ${data.archive_file.delete_ebs_zip.output_path} ${data.archive_file.estimate_ebs_zip.output_path}"
-
-    # Comando utilizado no Windows, para remoção dos zips:
-    # command = "del ${data.archive_file.delete_ebs_zip.output_path} ${data.archive_file.estimate_ebs_zip.output_path}"
-  }
+    command = "rm -f ${data.archive_file.estimate_ebs_zip.output_path}"
+    }
 
   depends_on = [
-    aws_s3_object.delete_ebs_file,
     aws_s3_object.estimate_ebs_file
   ]
 }
