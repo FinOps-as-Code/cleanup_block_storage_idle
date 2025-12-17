@@ -245,6 +245,7 @@ jobs:
         with:
           context: .
           push: true
+          provenance: false
           tags: |
             ${{ steps.meta.outputs.full_image }}:${{ steps.meta.outputs.tag }}
             ${{ steps.meta.outputs.full_image }}:latest

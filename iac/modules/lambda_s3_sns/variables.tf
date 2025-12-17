@@ -6,22 +6,10 @@ variable "bucket_name" {
 }
 
 ## Informações referentes ao arquivo zip
-variable "delete_ebs_python_path" {
-  type        = string
-  description = "Caminho do arquivo Python da função Lambda de exclusão de EBS não anexados"
-  default     = "../delete_ebs_noAttached.py"
-}
-
 variable "estimate_ebs_python_path" {
   type        = string
   description = "Caminho do arquivo Python da função Lambda de exclusão de EBS não anexados"
   default     = "../estimate_ebs_noAttached.py"
-}
-
-variable "delete_ebs_zip_name" {
-  type        = string
-  description = "Caminho do arquivo Python da função Lambda de estimativa de EBS não anexados"
-  default     = "delete-ebs.zip"
 }
 
 variable "estimate_ebs_zip_name" {
