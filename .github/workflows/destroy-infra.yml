@@ -11,9 +11,9 @@ on:
         options:
           - Development
           - Production
-        confirm_destroy:
-            description: 'Digite destruir para confirmar'
-            required: true
+      confirm_destroy:
+        description: 'Digite destruir para confirmar'
+        required: true
 
 permissions:
   id-token: write
@@ -41,7 +41,7 @@ jobs:
             uses: actions/checkout@v4
 
           - name: Configurar Terraform
-            uses: hashicorp/setup-terraform@v
+            uses: hashicorp/setup-terraform@v3
             with:
               terraform_version: ${{ env.TF_VERSION }}
         
