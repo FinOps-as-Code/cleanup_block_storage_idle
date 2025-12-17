@@ -22,7 +22,7 @@ env:
   
   # -- Container Registry -- 
   REGISTRY_TYPE: 'ecr' # Opções: 'ecr' ou 'dockerhub'
-  IMAGE_NAME: 'fac-cleanup-block-storage-idle'  
+  IMAGE_NAME: 'fac_cleanup_block_storage_idle'  
   
   # -- Package Manager -- 
   PACKAGE_MANAGER: 'uv' # Opções: 'uv' ou 'poetry'
@@ -229,7 +229,7 @@ jobs:
             FULL_NAME="$LOWER_IMAGE_NAME"
           fi
           echo "Tag gerada: $FULL_NAME:$SHA_SHORT"
-          
+
           echo "full_image=$FULL_NAME" >> $GITHUB_OUTPUT
           echo "tag_sha=$SHA_SHORT" >> $GITHUB_OUTPUT
           
