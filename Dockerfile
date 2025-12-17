@@ -30,4 +30,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE $PORT
 
-ENTRYPOINT ["uv", "run", "python", "delete_ebs_noAttached.py"]
+ENTRYPOINT ["python", "delete_ebs_noAttached.py"]
