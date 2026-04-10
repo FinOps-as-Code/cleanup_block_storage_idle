@@ -31,7 +31,3 @@ Módulo terraform automatizando o deploy de recursos AWS para automatização do
 <img src='./resume.png' alt="resumo do laboratório">
 <figcaption> Timeline do Laboratório</figcaption>
 </figcaption>
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines, engineering expectations, and pull request guidance for this repository.
